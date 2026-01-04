@@ -5,29 +5,30 @@ import { id } from "@instantdb/react";
 export default function CommentBox({ imageId }) {
   const [text, setText] = useState("");
 
-  const addComment = async () => {
-    if (!text.trim()) return;
+const addComment = async () => {
+  if (!text.trim()) return;
 
-    // ✅ get user identity
-    const user = JSON.parse(localStorage.getItem("user"));
-    if (!user) return;
+  const user = JSON.parse(localStorage.getItem("user"));
+  if (!user) return;
 
-   await db.transact([
-  db.tx.comments[id()].update({
-    text,
-    createdAt: Date.now(),
-    image: imageId,
-  }),
+  const commentId = id();
 
-  // 🔥 THIS LINE IS KEY
-  db.tx.images[imageId].update({
-    lastInteractionAt: Date.now(),
-  }),
-]);
+  await db.transact([
+    db.tx.comments[commentId].update({
+      text,
+      createdAt: Date.now(),
+      image: imageId,      // link to image
+      user: user.id,       // 🔥 link to user (THIS WAS MISSING)
+    }),
 
+    db.tx.images[imageId].update({
+      lastInteractionAt: Date.now(),
+    }),
+  ]);
 
-    setText("");
-  };
+  setText("");
+};
+
 
   return (
     <div style={{ marginTop: 8 }}>
